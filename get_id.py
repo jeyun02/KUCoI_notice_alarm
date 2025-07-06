@@ -2,7 +2,7 @@ import requests
 import json
 
 # --- 1. 여기에 본인의 정보 입력 ---
-REST_API_KEY = "b133753522abe37b3111a446c20a3ec4"  # 카카오 개발자센터에서 확인한 REST API 키 (숫자)
+REST_API_KEY = "KAKAO_REST_API_KEY"  # 카카오 개발자센터에서 확인한 REST API 키 (숫자)
 REDIRECT_URI = "http://localhost:8000"  # 카카오 개발자센터에 등록한 Redirect URI
 AUTH_CODE = "LM7H2OjwufO5aJRtHwK1dlyjW0SKEDfFFE7vpV3dmuzCm7H7O0Vr9QAAAAQKFyEtAAABl9-ei2vOkqTnJF629A"       # 브라우저 주소창에서 얻은 인증 코드
 
