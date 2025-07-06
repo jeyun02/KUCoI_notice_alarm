@@ -28,8 +28,9 @@ def get_all_new_notices():
     정의된 모든 카테고리의 공지사항 페이지를 크롤링하여
     오늘 또는 어제 올라온 공지사항의 제목과 링크를 반환합니다.
     """
-    # 어제 날짜를 'YYYY.MM.DD' 형식으로 준비
+    # --- 테스트용 날짜 설정 ---
     yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y.%m.%d')
+    # test_date = '2025.07.02' # 테스트를 위해 날짜를 '7월 2일'로 고정합니다.
     
     all_new_notices = []
     
@@ -63,12 +64,20 @@ def get_all_new_notices():
                 
             post_date = date_td.get_text(strip=True)
             
-            if post_date == yesterday: # 어제 날짜와 일치하는 경우만
+            if post_date == yesterday: # 테스트 날짜와 일치하는 경우만
                 link_tag = title_td.find('a')
                 if link_tag and 'href' in link_tag.attrs:
                     title = link_tag.get_text(strip=True)
-                    link = urljoin(url, link_tag['href']) # 기준 URL을 현재 카테고리 URL로 사용
-
+                    
+                    # URL 생성 로직 수정
+                    # href가 "?mode=view..." 와 같은 쿼리 문자열로 시작하므로,
+                    # 베이스 URL에 바로 연결하여 완전한 URL을 생성합니다.
+                    relative_href = link_tag['href']
+                    if relative_href.startswith('?'):
+                        link = url + relative_href
+                    else:
+                        link = urljoin(url, relative_href) # 다른 형태의 링크를 대비한 fallback
+                        
                     all_new_notices.append({'category': category, 'title': title, 'link': link})
                     
     return all_new_notices
@@ -127,7 +136,7 @@ def send_notice_message(notice, access_token):
     """
     template_object = {
         "object_type": "text",
-        "text": f"📢 새로운 [{notice['category']}] 알림\n\n- 제목: {notice['title']}",
+        "text": f"📢  [{notice['category']}] \n\n- 제목: {notice['title']} \n\n- 링크: {notice['link']}",
         "link": { "web_url": notice['link'], "mobile_web_url": notice['link'] },
         "button_title": "공지사항 바로가기"
     }
@@ -173,7 +182,11 @@ def main():
         status_text = f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}]\n어제자 신규 공지사항이 없습니다."
         send_status_message(status_text, new_access_token)
     else:
+        today_str = datetime.now().strftime('%m월%d일')
+        send_status_message(f"[{today_str}] 신규 공지사항이 {len(notices)}개 있습니다.", new_access_token)
         print(f"결과: {len(notices)}개의 어제자 공지사항을 찾았습니다.")
+        # "x월x일 어제자 신규 공지사항이 x개 있습니다." 형태로 메시지 전송
+        
         for notice in notices:
             send_notice_message(notice, new_access_token)
             
